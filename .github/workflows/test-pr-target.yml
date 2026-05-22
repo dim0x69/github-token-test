@@ -1,0 +1,25 @@
+name: "Audit: PR Target GITHUB_TOKEN Permissions"
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  audit-permissions:
+    name: "Audit PR Target Token Permissions"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run Permissions Tester Script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 test_permissions.py
