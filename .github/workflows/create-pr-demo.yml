@@ -1,0 +1,55 @@
+name: "Demo: Create PR with GH CLI"
+
+on:
+  workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+
+permissions:
+  contents: write       # Required to push the new branch to GitHub
+  pull-requests: write  # Required to open a Pull Request using 'gh pr create'
+
+jobs:
+  create-pull-request:
+    name: "Create PR using GH CLI"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make a Dummy Code Change
+        run: |
+          echo "Automated update at $(date)" >> demo_updates.txt
+
+      - name: Commit and Push Branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set up git user identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Create a unique branch name
+          BRANCH_NAME="demo/pr-test-$(date +%s)"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Stage and commit change
+          git add demo_updates.txt
+          git commit -m "chore: automated test update"
+          
+          # Push the branch to the remote repository
+          git push origin "$BRANCH_NAME"
+          
+          # Export branch name for the next step
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create Pull Request using GH CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Run the 'gh pr create' command
+          gh pr create \
+            --title "Automated Demo PR" \
+            --body "This Pull Request was created programmatically by the GitHub CLI ('gh') inside a GitHub Actions workflow using 'contents: write' and 'pull-requests: write' permissions." \
+            --head "$BRANCH_NAME" \
+            --base main
