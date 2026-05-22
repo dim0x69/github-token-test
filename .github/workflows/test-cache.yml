@@ -1,0 +1,39 @@
+name: "Audit: Actions Cache Permissions"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-cache:
+    name: "Audit Cache Write Access"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Dummy Cache Data
+        run: |
+          echo "Cache payload created at $(date)" > cache_test_data.txt
+          echo "DUMMY_KEY=test-cache-${{ github.sha }}-${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Attempt to Save Cache
+        id: cache-save-step
+        uses: actions/cache/save@v4
+        with:
+          path: cache_test_data.txt
+          key: ${{ env.DUMMY_KEY }}
+
+      - name: Verify Cache Write Status
+        run: |
+          echo "### Cache Permissions Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Cache attempted with Key: \`${{ env.DUMMY_KEY }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The cache save action was successfully executed by the runner. Note:" >> $GITHUB_STEP_SUMMARY
+          echo "- On **internal branches** and **pushes**, this cache is saved successfully and accessible to subsequent runs." >> $GITHUB_STEP_SUMMARY
+          echo "- On **public fork pull requests**, the cache service blocks storage commits to the base repository to prevent cache-poisoning attacks." >> $GITHUB_STEP_SUMMARY
