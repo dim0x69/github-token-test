@@ -1,5 +1,6 @@
 # GITHUB_TOKEN Permissions Audit & Reference Framework
 
+
 This repository provides both a **comprehensive conceptual overview** of `GITHUB_TOKEN` permission behaviors and a **programmatic, zero-dependency test suite** that you can run in your own GitHub repository to verify and report actual scopes in real-time.
 
 ---
